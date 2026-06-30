@@ -1,0 +1,214 @@
+[
+  {
+    "id": "rack_1",
+    "type": "rack",
+    "name": "Main Aisle A1 Rack",
+    "position": {
+      "x": -5.0,
+      "y": 2.0,
+      "z": -3.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 2.0,
+      "h": 4.0,
+      "d": 8.0
+    },
+    "confidence": 0.98,
+    "status": "hazard",
+    "metadata": {
+      "sku_count": 45,
+      "max_capacity": 60,
+      "zone": "Aisle A1",
+      "last_scanned": "2026-06-07 10:15:30",
+      "violations": [
+        "Spatial collision detected with Heavy Engine Parts (pallet_1)"
+      ]
+    }
+  },
+  {
+    "id": "rack_2",
+    "type": "rack",
+    "name": "Main Aisle A2 Rack",
+    "position": {
+      "x": 5.0,
+      "y": 2.0,
+      "z": -3.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 2.0,
+      "h": 4.0,
+      "d": 8.0
+    },
+    "confidence": 0.98,
+    "status": "ok",
+    "metadata": {
+      "sku_count": 28,
+      "max_capacity": 60,
+      "zone": "Aisle A2",
+      "last_scanned": "2026-06-07 10:16:12"
+    }
+  },
+  {
+    "id": "pallet_1",
+    "type": "pallet",
+    "name": "Heavy Engine Parts",
+    "position": {
+      "x": -5.0,
+      "y": 0.3,
+      "z": -2.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 1.2,
+      "h": 1.0,
+      "d": 1.2
+    },
+    "confidence": 0.92,
+    "status": "hazard",
+    "metadata": {
+      "sku_count": 12,
+      "weight_kg": 450,
+      "zone": "Aisle A1 Shelf 1",
+      "last_scanned": "2026-06-07 10:20:00",
+      "violations": [
+        "Object exceeds height limit (8m) or placed below ground level",
+        "Spatial collision detected with Main Aisle A1 Rack (rack_1)"
+      ]
+    }
+  },
+  {
+    "id": "pallet_2",
+    "type": "pallet",
+    "name": "Electronic Spares",
+    "position": {
+      "x": -5.0,
+      "y": 1.5,
+      "z": 2.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 1.2,
+      "h": 1.2,
+      "d": 1.2
+    },
+    "confidence": 0.95,
+    "status": "ok",
+    "metadata": {
+      "sku_count": 80,
+      "weight_kg": 120,
+      "zone": "Aisle A1 Shelf 2",
+      "last_scanned": "2026-06-07 10:21:45"
+    }
+  },
+  {
+    "id": "crate_1",
+    "type": "crate",
+    "name": "Unprocessed Timber Crate",
+    "position": {
+      "x": 0.0,
+      "y": 0.5,
+      "z": 5.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0.25,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 1.5,
+      "h": 1.0,
+      "d": 1.5
+    },
+    "confidence": 0.89,
+    "status": "hazard",
+    "metadata": {
+      "sku_count": 1,
+      "weight_kg": 300,
+      "zone": "Central Corridor (Blocked Aisle)",
+      "last_scanned": "2026-06-07 11:45:00",
+      "violations": [
+        "Blocking main transit corridor (lane X=0)"
+      ]
+    }
+  },
+  {
+    "id": "barrel_1",
+    "type": "barrel",
+    "name": "Industrial Lubricant Drum",
+    "position": {
+      "x": 5.0,
+      "y": 0.5,
+      "z": 2.0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "dimensions": {
+      "w": 0.8,
+      "h": 1.1,
+      "d": 0.8
+    },
+    "confidence": 0.91,
+    "status": "hazard",
+    "metadata": {
+      "sku_count": 4,
+      "fluid_type": "Oil",
+      "zone": "Aisle A2 Shelf 1",
+      "last_scanned": "2026-06-07 11:50:20",
+      "violations": [
+        "Object exceeds height limit (8m) or placed below ground level"
+      ]
+    }
+  },
+  {
+    "id": "forklift_1",
+    "type": "forklift",
+    "name": "Toyota Electric Forklift",
+    "position": {
+      "x": 0.0,
+      "y": 0.9,
+      "z": -3.6
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.56,
+      "z": 0.0
+    },
+    "dimensions": {
+      "w": 1.4,
+      "h": 2.1,
+      "d": 2.8
+    },
+    "confidence": 0.97,
+    "status": "hazard",
+    "metadata": {
+      "battery": 82,
+      "operator": "John Doe",
+      "zone": "Loading Dock",
+      "last_scanned": "2026-06-07 12:10:00",
+      "violations": [
+        "Object exceeds height limit (8m) or placed below ground level"
+      ]
+    }
+  }
+]

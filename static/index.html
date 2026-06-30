@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpatialWarehouse 3D | Warehouse Spatial Modeling</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="index.css">
+    <!-- Three.js and OrbitControls via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Custom Application Scripts -->
+    <script src="three-view.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-cubes-stacked logo-icon"></i>
+                <div class="logo-text">
+                    <h1>SpatialWarehouse <span class="accent-text">3D</span></h1>
+                    <span class="sub-logo">Photogrammetry & Spatial Modeling</span>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <!-- Sprint Selector -->
+                <div class="sprint-selector-container">
+                    <label for="sprint-select"><i class="fa-solid fa-code-branch"></i> Agile Sprint View:</label>
+                    <select id="sprint-select" class="sprint-select">
+                        <option value="5">Sprint 5: Full Inventory Dashboard (Current)</option>
+                        <option value="4">Sprint 4: Spatial Updating & Collisions</option>
+                        <option value="3">Sprint 3: Meshroom CLI Integration</option>
+                        <option value="2">Sprint 2: Object Bounding Box Engine</option>
+                        <option value="1">Sprint 1: Core 3D Viewer & Layout</option>
+                    </select>
+                </div>
+                
+                <div class="system-status">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Backend Connected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Layout Grid -->
+        <div class="layout-grid">
+            <!-- Navigation Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <button class="nav-btn active" data-tab="floor-map-tab" id="btn-floor-map">
+                        <i class="fa-solid fa-warehouse"></i>
+                        <span>Warehouse Floor</span>
+                    </button>
+                    <button class="nav-btn" data-tab="pipeline-tab" id="btn-pipeline">
+                        <i class="fa-solid fa-camera-rotate"></i>
+                        <span>Meshroom Pipeline</span>
+                    </button>
+                    <button class="nav-btn" data-tab="analytics-tab" id="btn-analytics">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Spatial Analytics</span>
+                    </button>
+                    <button class="nav-btn" data-tab="retrospective-tab" id="btn-retrospective">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Sprint Retro</span>
+                    </button>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="sprint-badge">Active: Sprint <span id="active-sprint-badge">5</span></div>
+                    <div class="version-badge">v1.2.0-stable</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Pane -->
+            <main class="content-pane">
+                
+                <!-- TAB 1: Warehouse Floor Map -->
+                <section id="floor-map-tab" class="tab-content active">
+                    <div class="floor-map-container">
+                        <!-- Left Panel: 3D Canvas -->
+                        <div class="canvas-panel card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-cube"></i> Interactive 3D Spatial Map</h3>
+                                <div class="canvas-controls">
+                                    <button id="btn-reset-cam" title="Reset Camera View"><i class="fa-solid fa-arrows-to-eye"></i> Reset View</button>
+                                    <button id="btn-toggle-grid" title="Toggle Grid Lines" class="active"><i class="fa-solid fa-border-all"></i> Grid</button>
+                                </div>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <div id="three-container"></div>
+                                <div class="canvas-loader" id="canvas-loader">
+                                    <div class="loader-spinner"></div>
+                                    <span>Rendering Scene...</span>
+                                </div>
+                                <!-- Canvas Overlay Tips -->
+                                <div class="canvas-overlay">
+                                    <span><i class="fa-solid fa-circle-info"></i> Left-click + drag to orbit | Right-click + drag to pan | Scroll to zoom</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Inspector and Hazards -->
+                        <div class="details-panel">
+                            <!-- Object Inspector -->
+                            <div class="card inspector-card" id="inspector-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-circle-info"></i> Object Inspector</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div id="inspector-empty" class="empty-state">
+                                        <i class="fa-solid fa-hand-pointer animate-bounce"></i>
+                                        <p>Click an object on the 3D floor map to inspect its spatial and inventory data.</p>
+                                    </div>
+                                    <div id="inspector-data" class="hidden">
+                                        <div class="detail-header">
+                                            <span class="detail-badge" id="obj-type-badge">pallet</span>
+                                            <h4 id="obj-name">Pallet Name</h4>
+                                            <span class="obj-id-text" id="obj-id">ID: pallet_1</span>
+                                        </div>
+                                        
+                                        <div class="detail-section">
+                                            <h5>Spatial Coordinates</h5>
+                                            <div class="coordinate-grid">
+                                                <div class="coord-box"><span>X</span><strong id="coord-x">0.0</strong></div>
+                                                <div class="coord-box"><span>Y (Height)</span><strong id="coord-y">0.0</strong></div>
+                                                <div class="coord-box"><span>Z</span><strong id="coord-z">0.0</strong></div>
+                                            </div>
+                                            <div class="coordinate-grid margin-top-sm">
+                                                <div class="coord-box full-width" id="obj-rotation-box">
+                                                    <span>Y-Rotation (Yaw)</span><strong id="coord-rot-y">0.0 rad</strong>
+                                                </div>
+                                            </div>
+                                            <!-- Manual override controllers (Sprint 4 feature) -->
+                                            <div class="override-panel sprint-4-feature">
+                                                <h5>Manual Spatial Adjustment</h5>
+                                                <div class="control-row">
+                                                    <label>Position X</label>
+                                                    <input type="range" id="adjust-x" min="-12" max="12" step="0.2" value="0">
+                                                </div>
+                                                <div class="control-row">
+                                                    <label>Position Z</label>
+                                                    <input type="range" id="adjust-z" min="-12" max="12" step="0.2" value="0">
+                                                </div>
+                                                <div class="control-row">
+                                                    <label>Rotation Y</label>
+                                                    <input type="range" id="adjust-rot" min="-3.14" max="3.14" step="0.1" value="0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="detail-section">
+                                            <h5>3D Bounding Dimensions</h5>
+                                            <div class="coordinate-grid">
+                                                <div class="coord-box"><span>Width</span><strong id="dim-w">1.2m</strong></div>
+                                                <div class="coord-box"><span>Height</span><strong id="dim-h">1.2m</strong></div>
+                                                <div class="coord-box"><span>Depth</span><strong id="dim-d">1.2m</strong></div>
+                                            </div>
+                                            <div class="volume-calc">
+                                                <span>Calculated Volume:</span>
+                                                <strong id="dim-vol">1.73 m³</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="detail-section">
+                                            <h5>Inventory & Detection Metadata</h5>
+                                            <div class="meta-row">
+                                                <span>CV Confidence:</span>
+                                                <div class="confidence-bar-container">
+                                                    <div class="confidence-bar" id="obj-confidence-bar"></div>
+                                                    <span id="obj-confidence-text">98%</span>
+                                                </div>
+                                            </div>
+                                            <div class="meta-row" id="sku-count-row">
+                                                <span>SKU Slots Occupied:</span>
+                                                <strong id="obj-sku-count">45 items</strong>
+                                            </div>
+                                            <div class="meta-row">
+                                                <span>Zone Placement:</span>
+                                                <strong id="obj-zone">Aisle A1</strong>
+                                            </div>
+                                            <div class="meta-row">
+                                                <span>Last Scanned:</span>
+                                                <strong id="obj-last-scanned">2026-06-07 10:15</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="inspector-actions">
+                                            <button id="btn-delete-object" class="btn-danger"><i class="fa-solid fa-trash-can"></i> Delete Model</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Spatial Hazards & Anomalies Card -->
+                            <div class="card hazards-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Spatial Safety Diagnostics</h3>
+                                    <span class="hazard-badge" id="hazard-count-badge">0</span>
+                                </div>
+                                <div class="card-body scrollable">
+                                    <div id="hazards-empty" class="empty-state">
+                                        <i class="fa-solid fa-shield-halved text-success"></i>
+                                        <p>No spatial safety hazards detected on the warehouse floor. Clear pathways.</p>
+                                    </div>
+                                    <div id="hazards-list" class="hidden">
+                                        <!-- Dynamic list of warning boxes -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: Meshroom Photogrammetry Pipeline -->
+                <section id="pipeline-tab" class="tab-content">
+                    <div class="pipeline-grid">
+                        <!-- Column 1: Scans Control and 3D Model Generator -->
+                        <div class="scan-inputs-panel card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-camera"></i> Photogrammetry Scan Trigger</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="scan-form">
+                                    <div class="form-group">
+                                        <label for="scan-type"><i class="fa-solid fa-tags"></i> Object Class Label:</label>
+                                        <select id="scan-type" class="form-control">
+                                            <option value="pallet">Pallet with Boxes</option>
+                                            <option value="crate">Wooden Crate</option>
+                                            <option value="barrel">Metal Storage Barrel/Drum</option>
+                                            <option value="rack">Heavy Duty Storage Rack</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="image-count-slider"><i class="fa-solid fa-images"></i> Number of Photos (360° Loop):</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="image-count-slider" min="10" max="60" value="24" class="slider">
+                                            <span id="image-count-val">24 Photos</span>
+                                        </div>
+                                        <small class="form-text text-muted">More images improve mesh density and confidence rating, but increase computational duration.</small>
+                                    </div>
+                                    
+                                    <!-- Mock Photos Upload Area -->
+                                    <div class="upload-dropzone" id="upload-dropzone">
+                                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                        <h4>Upload Object Images</h4>
+                                        <p>Drag and drop multi-angle images or click to select files (PNG/JPG)</p>
+                                        <div class="mock-upload-status" id="upload-files-info">No files selected</div>
+                                    </div>
+                                    
+                                    <button type="submit" id="btn-start-pipeline" class="btn-primary full-width">
+                                        <i class="fa-solid fa-play"></i> Start Photogrammetry Pipeline
+                                    </button>
+                                </form>
+
+                                <!-- Reconstructed Mesh Standalone Preview -->
+                                <div class="mesh-preview-area card margin-top-md">
+                                    <div class="card-header">
+                                        <h4><i class="fa-solid fa-binoculars"></i> Reconstructed 3D Preview</h4>
+                                    </div>
+                                    <div class="preview-canvas-container">
+                                        <div id="preview-three-container"></div>
+                                        <div class="preview-empty-state" id="preview-empty">
+                                            <i class="fa-solid fa-cube"></i>
+                                            <p>No active 3D reconstruction preview. Complete a scan to view model geometry.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Pipeline Nodes & Terminal Logs -->
+                        <div class="pipeline-logs-panel">
+                            <!-- Node Graph Tracker -->
+                            <div class="card pipeline-graph-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-circle-nodes"></i> Meshroom Pipeline Execution Flow</h3>
+                                    <div class="pipeline-pct-badge" id="pipeline-pct">0%</div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="pipeline-progress-bar-container">
+                                        <div class="pipeline-progress-bar" id="pipeline-progress-bar"></div>
+                                    </div>
+                                    
+                                    <div class="pipeline-nodes-track">
+                                        <div class="node-step" data-node="CameraInit">
+                                            <div class="node-dot"><i class="fa-solid fa-camera"></i></div>
+                                            <div class="node-name">Cam Init</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="FeatureExtraction">
+                                            <div class="node-dot"><i class="fa-solid fa-fingerprint"></i></div>
+                                            <div class="node-name">Extract</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="ImageMatching">
+                                            <div class="node-dot"><i class="fa-solid fa-arrow-down-up-lock"></i></div>
+                                            <div class="node-name">Match</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="StructureFromMotion">
+                                            <div class="node-dot"><i class="fa-solid fa-draw-polygon"></i></div>
+                                            <div class="node-name">SfM</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="DepthMap">
+                                            <div class="node-dot"><i class="fa-solid fa-layer-group"></i></div>
+                                            <div class="node-name">Depth</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="Meshing">
+                                            <div class="node-dot"><i class="fa-solid fa-mountain"></i></div>
+                                            <div class="node-name">Mesh</div>
+                                        </div>
+                                        <div class="node-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                        <div class="node-step" data-node="Texturing">
+                                            <div class="node-dot"><i class="fa-solid fa-paintbrush"></i></div>
+                                            <div class="node-name">Texture</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CLI Terminal Logs -->
+                            <div class="card terminal-card">
+                                <div class="card-header">
+                                    <div class="terminal-title-bar">
+                                        <span class="terminal-dot red"></span>
+                                        <span class="terminal-dot yellow"></span>
+                                        <span class="terminal-dot green"></span>
+                                        <span class="terminal-title">Meshroom CLI Console: bash - python3 pipeline_runner.py</span>
+                                    </div>
+                                    <button class="btn-terminal-clear" id="btn-clear-logs" title="Clear Logs"><i class="fa-solid fa-ban"></i></button>
+                                </div>
+                                <div class="terminal-body" id="terminal-output">
+                                    <div class="terminal-row line-system">meshroom_photogrammetry CLI initialized. System listening...</div>
+                                    <div class="terminal-row line-input">antigravity@warehouse-cv-node:~$ <span class="terminal-cursor">_</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: Spatial Analytics Dashboard -->
+                <section id="analytics-tab" class="tab-content">
+                    <div class="analytics-grid">
+                        <!-- Stat Cards -->
+                        <div class="stat-card card">
+                            <i class="fa-solid fa-box-open stat-icon"></i>
+                            <div class="stat-info">
+                                <h3>Total Objects</h3>
+                                <strong id="stat-total-objects">0</strong>
+                                <span>3D models active on floor</span>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <i class="fa-solid fa-maximize stat-icon"></i>
+                            <div class="stat-info">
+                                <h3>Space Utilization</h3>
+                                <strong id="stat-space-pct">0.0%</strong>
+                                <span>Of 4,800 m³ warehouse bounds</span>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <i class="fa-solid fa-list-check stat-icon"></i>
+                            <div class="stat-info">
+                                <h3>Rack Capacity</h3>
+                                <strong id="stat-rack-pct">0.0%</strong>
+                                <span>Total slots filled</span>
+                            </div>
+                        </div>
+                        <div class="stat-card card danger">
+                            <i class="fa-solid fa-triangle-exclamation stat-icon"></i>
+                            <div class="stat-info">
+                                <h3>Active Hazards</h3>
+                                <strong id="stat-hazards">0</strong>
+                                <span>Require spatial relocation</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-charts-grid margin-top-lg">
+                        <!-- Capacity charts -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-truck-ramp-box"></i> Object Classification Mix</h3>
+                            </div>
+                            <div class="card-body flex-center-col">
+                                <div class="chart-bars-container" id="category-bars">
+                                    <!-- Dynamic bar graph created in app.js -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-gauge"></i> Spatial Density Indexes</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="gauge-displays">
+                                    <div class="gauge-item">
+                                        <svg class="progress-ring" width="120" height="120">
+                                            <circle class="progress-ring__circle-bg" stroke="#1e293b" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                                            <circle class="progress-ring__circle" id="space-gauge-ring" stroke="#6366f1" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                                        </svg>
+                                        <div class="gauge-val" id="gauge-space-text">0%</div>
+                                        <div class="gauge-label">Total Floor Vol</div>
+                                    </div>
+                                    <div class="gauge-item">
+                                        <svg class="progress-ring" width="120" height="120">
+                                            <circle class="progress-ring__circle-bg" stroke="#1e293b" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                                            <circle class="progress-ring__circle" id="rack-gauge-ring" stroke="#10b981" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                                        </svg>
+                                        <div class="gauge-val" id="gauge-rack-text">0%</div>
+                                        <div class="gauge-label">Rack Slot Cap</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: Agile Sprints Retrospective -->
+                <section id="retrospective-tab" class="tab-content">
+                    <div class="retro-header">
+                        <h2>Agile Development Roadmap: 3D warehouse pipeline</h2>
+                        <p>Track the iterative delivery milestones of this spatial computer vision application built across 5 two-week Agile Sprints.</p>
+                    </div>
+
+                    <div class="sprint-cards-grid">
+                        <div class="retro-card card finished" id="retro-s1">
+                            <div class="retro-badge"><i class="fa-solid fa-circle-check"></i> Sprint 1</div>
+                            <h4>Core 3D Viewer & Layout</h4>
+                            <ul class="retro-list">
+                                <li>Rendered mock warehouse grid layout and lighting setup.</li>
+                                <li>Integrated OrbitControls for panning, zooming, and orbiting.</li>
+                                <li>Implemented basic primitive geometry mocks for storage shelves and aisles.</li>
+                            </ul>
+                        </div>
+                        <div class="retro-card card finished" id="retro-s2">
+                            <div class="retro-badge"><i class="fa-solid fa-circle-check"></i> Sprint 2</div>
+                            <h4>Object Bounding Box Engine</h4>
+                            <ul class="retro-list">
+                                <li>Engineered Python CV simulation engine with AABB (Axis-Aligned Bounding Box) math.</li>
+                                <li>Added support for 3D raycasting in Three.js to pick objects and retrieve metrics.</li>
+                                <li>Drafted initial database.json structure for static spatial persistence.</li>
+                            </ul>
+                        </div>
+                        <div class="retro-card card finished" id="retro-s3">
+                            <div class="retro-badge"><i class="fa-solid fa-circle-check"></i> Sprint 3</div>
+                            <h4>Meshroom CLI Automation</h4>
+                            <ul class="retro-list">
+                                <li>Automated photogrammetry sequence in CLI from python backend.</li>
+                                <li>Built asynchronous background workers to execute Node pipeline (SfM, Meshing, Texturing).</li>
+                                <li>Integrated CLI stderr/stdout logging streaming via REST API.</li>
+                            </ul>
+                        </div>
+                        <div class="retro-card card finished" id="retro-s4">
+                            <div class="retro-badge"><i class="fa-solid fa-circle-check"></i> Sprint 4</div>
+                            <h4>Spatial Updating & Collisions</h4>
+                            <ul class="retro-list">
+                                <li>Integrated manual coordinate overrides using HTML slider panels.</li>
+                                <li>Implemented real-time collision detection calculations on spatial updates.</li>
+                                <li>Added safety diagnostics warnings when aisle blockages or object intersections occur.</li>
+                            </ul>
+                        </div>
+                        <div class="retro-card card finished" id="retro-s5">
+                            <div class="retro-badge"><i class="fa-solid fa-circle-check"></i> Sprint 5</div>
+                            <h4>Full Inventory Dashboard & UI</h4>
+                            <ul class="retro-list">
+                                <li>Polished premium dark-slate design with glassmorphic cards and glowing metrics.</li>
+                                <li>Aggregated inventory stats, rack occupancy volumes, and space utilization gauges.</li>
+                                <li>Wrote API hooks to sync floor updates persistently, allowing deletion and additions.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+</body>
+</html>
